@@ -1,0 +1,79 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+<h3>Image to Video Converter</h3>
+
+<InputFile OnChange="HandleFileUpload" accept="image/*" />
+
+<button @onclick="GenerateAnimatedVideo" disabled="@isProcessing">Convert</button>
+
+@if (isProcessing)
+{
+    <p>Processing... Please wait.</p>
+}
+
+@if (!string.IsNullOrEmpty(VideoPath))
+{
+    <p>Generated Video:</p>
+    <video controls width="600">
+        <source src="@VideoPath" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+}
+
+@code {
+    private IBrowserFile uploadedFile;
+    private string VideoPath = "";
+    private bool isProcessing = false;
+
+    private void HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        uploadedFile = e.File;
+        Console.WriteLine($"File selected: {uploadedFile.Name}");
+    }
+
+    private async Task GenerateAnimatedVideo()
+    {
+        if (uploadedFile == null)
+        {
+            Console.WriteLine("No file selected!");
+            return;
+        }
+
+        isProcessing = true;
+        try
+        {
+            Console.WriteLine("Uploading file to API...");
+
+            using var content = new MultipartFormDataContent();
+            using var fileStream = uploadedFile.OpenReadStream();
+            content.Add(new StreamContent(fileStream), "file", uploadedFile.Name);
+
+            using var httpClient = new HttpClient { BaseAddress = new Uri("https://localhost:7272/") };
+            var response = await httpClient.PostAsync("api/convert/upload", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                VideoPath = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Received Video URL: {VideoPath}");
+            }
+            else
+            {
+                Console.WriteLine($"API Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+}
+
+
+
+
