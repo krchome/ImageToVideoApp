@@ -1,5 +1,7 @@
 ﻿@page "/"
+@inject IJSRuntime JS
 @rendermode InteractiveServer
+
 
 <h3>Image to Video Converter</h3>
 
@@ -15,7 +17,7 @@
 @if (!string.IsNullOrEmpty(VideoPath))
 {
     <p>Generated Video:</p>
-    <video id="videoPlayer" class="@videoClass" controls width="600">
+    <video id="videoPlayer" class="@videoAnimationClass" controls width="600" @onended="OnVideoEnded" @onplay="OnVideoPlay" @onpause="OnVideoPaused">
         <source src="@VideoPath?@DateTime.Now.Ticks" type="video/mp4">
         Your browser does not support the video tag.
     </video>
@@ -28,14 +30,16 @@
     @using Microsoft.AspNetCore.Components.Forms;
     @using System.Threading.Tasks;
     @using System.IO;
-@using System.Text.Json.Serialization
+    @using System.Text.Json.Serialization
 
     private IBrowserFile uploadedFile;
     private string VideoPath = "";
     private bool isProcessing = false;
     // Initialize videoClass with a default value for fade-in
     private string videoClass = "video-fade-in";  // This will control the CSS animations for the video element
-
+    private string videoAnimationClass = "video-static";
+    private string message = "";
+   
     private void HandleFileUpload(InputFileChangeEventArgs e)
     {
         uploadedFile = e.File;
@@ -99,6 +103,27 @@
             StateHasChanged();
         }
     }
+    // This method is called when the video ends.
+    private void OnVideoEnded()
+    {
+        // Change to the static class so that animations stop.
+        videoAnimationClass = "video-static";
+        StateHasChanged(); // Force UI update
+    }
+
+    
+    public void OnVideoPaused()
+    {
+        videoAnimationClass = "video-static";
+        StateHasChanged();
+    }
+    
+    // When the video is played, reapply the animation.
+    private void OnVideoPlay()
+    {
+        videoAnimationClass = "video-animation";
+        StateHasChanged();
+    }
 
     public class ConvertResponse
     {
@@ -108,4 +133,5 @@
         [JsonPropertyName("videoUrl")]
         public string VideoUrl { get; set; }
     }
+    
 }

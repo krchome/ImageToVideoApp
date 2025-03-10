@@ -90,7 +90,41 @@ h1:focus {
 }
 /* Slide-In Animation */
 .video-animation {
-    animation: slideIn 1s ease-out, zoomIn 1s ease-out, bounce 1s infinite ease, glow 1.5s ease-out infinite, pulse 2s infinite ease-in-out;
+    animation: slowFade 1.5s ease-in-out,rotateIn 1s ease-in-out,
+    slideIn 1s ease-out, zoomIn 1s ease-out, bounce 1s infinite ease, glow 1.5s ease-out infinite, pulse 2s infinite ease-in-out;
+}
+    .video-animation:hover {
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        transition: box-shadow 0.3s ease-in-out;
+    }
+
+/* Static class with no animation */
+.video-static {
+    /* No animation; can also include static styling if needed */
+}
+@keyframes rotateIn {
+    from {
+        transform: rotate(-10deg) scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: rotate(0deg) scale(1);
+        opacity: 1;
+    }
+}
+
+
+@keyframes slowFade {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* Slide-In Effect */
@@ -165,4 +199,19 @@ h1:focus {
         transform: scale(1);
         opacity: 0.8;
     }
+}
+@keyframes extraMotion {
+    0%
+
+{
+    transform: translateY(0) rotate(0deg);
+}
+
+50% {
+    transform: translateY(-5px) rotate(2deg);
+}
+
+100% {
+    transform: translateY(0) rotate(0deg);
+}
 }
