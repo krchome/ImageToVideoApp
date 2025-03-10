@@ -15,16 +15,26 @@
 @if (!string.IsNullOrEmpty(VideoPath))
 {
     <p>Generated Video:</p>
-    <video controls width="600">
-        <source src="@VideoPath" type="video/mp4">
+    <video id="videoPlayer" class="@videoClass" controls width="600">
+        <source src="@VideoPath?@DateTime.Now.Ticks" type="video/mp4">
         Your browser does not support the video tag.
     </video>
 }
 
 @code {
+        // Add necessary using directives
+    @using System.Net.Http;
+    @using System.Text.Json;
+    @using Microsoft.AspNetCore.Components.Forms;
+    @using System.Threading.Tasks;
+    @using System.IO;
+@using System.Text.Json.Serialization
+
     private IBrowserFile uploadedFile;
     private string VideoPath = "";
     private bool isProcessing = false;
+    // Initialize videoClass with a default value for fade-in
+    private string videoClass = "video-fade-in";  // This will control the CSS animations for the video element
 
     private void HandleFileUpload(InputFileChangeEventArgs e)
     {
@@ -39,6 +49,9 @@
             Console.WriteLine("No file selected!");
             return;
         }
+        // Empty the VideoPath before starting the conversion
+        VideoPath = "";
+        StateHasChanged();  // Ensure UI is updated immediately
 
         isProcessing = true;
         try
@@ -54,8 +67,22 @@
 
             if (response.IsSuccessStatusCode)
             {
-                VideoPath = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"Received Video URL: {VideoPath}");
+                var result = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"API Response: {result}"); // Log the result
+
+                // Deserialize the JSON string into ConvertResponse object
+                var responseObject = JsonSerializer.Deserialize<ConvertResponse>(result);
+
+                if (responseObject != null && !string.IsNullOrEmpty(responseObject.VideoUrl))
+                {
+                    VideoPath = responseObject.VideoUrl;
+                    Console.WriteLine($"Received Video URL: {VideoPath}");
+                    StateHasChanged();
+                }
+                else
+                {
+                    Console.WriteLine("Error: Video URL is null or empty.");
+                }
             }
             else
             {
@@ -72,8 +99,13 @@
             StateHasChanged();
         }
     }
+
+    public class ConvertResponse
+    {
+        [JsonPropertyName("message")]
+        public string Message { get; set; }
+
+        [JsonPropertyName("videoUrl")]
+        public string VideoUrl { get; set; }
+    }
 }
-
-
-
-

@@ -58,3 +58,111 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+/* Define fade-in and fade-out effects */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+/* Apply fade-in effect to the video element */
+.video-fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+/* Apply fade-out effect to the video element */
+.video-fade-out {
+    animation: fadeOut 1s ease-out;
+}
+/* Slide-In Animation */
+.video-animation {
+    animation: slideIn 1s ease-out, zoomIn 1s ease-out, bounce 1s infinite ease, glow 1.5s ease-out infinite, pulse 2s infinite ease-in-out;
+}
+
+/* Slide-In Effect */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Zoom-In Effect */
+@keyframes zoomIn {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Bounce Effect */
+@keyframes bounce {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+/* Glow Effect */
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(255, 255, 255, 1);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+    }
+}
+
+/* Pulse Effect */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+}

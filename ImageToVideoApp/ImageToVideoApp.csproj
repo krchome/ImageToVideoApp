@@ -10,4 +10,8 @@
     <PackageReference Include="Xabe.FFmpeg" Version="6.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\videos\" />
+  </ItemGroup>
+
 </Project>
