@@ -13,27 +13,42 @@ public class ConvertController : ControllerBase
         if (file == null || file.Length == 0)
             return BadRequest("No file uploaded.");
 
-        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/videos");
-        if (!Directory.Exists(uploadsFolder))
-            Directory.CreateDirectory(uploadsFolder);
-
-        string imagePath = Path.Combine(uploadsFolder, file.FileName);
-
-        // Save uploaded file
-        using (var stream = new FileStream(imagePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        // Generate unique filename to prevent conflicts
-        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        string outputFilePath = Path.Combine(uploadsFolder, $"output_{timestamp}.mp4");
-
-        // FFmpeg Command
-        string ffmpegArgs = $"-y -loop 1 -i \"{imagePath}\" -c:v libx264 -t 10 -pix_fmt yuv420p -vf \"scale=1280:720\" \"{outputFilePath}\"";
-
         try
         {
+            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/videos");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            // Generate unique filenames to prevent conflicts
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string uniqueFileName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{timestamp}{Path.GetExtension(file.FileName)}";
+            string imagePath = Path.Combine(uploadsFolder, uniqueFileName);
+            string outputFilePath = Path.Combine(uploadsFolder, $"output_{timestamp}.mp4");
+
+            Console.WriteLine($"Saving uploaded file to {imagePath}");
+
+            // Save uploaded file
+            using (var stream = new FileStream(imagePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Wait briefly to ensure file is fully written
+            await Task.Delay(100);
+
+            // Check if file was saved correctly
+            if (!System.IO.File.Exists(imagePath))
+            {
+                return StatusCode(500, "Failed to save uploaded file");
+            }
+
+            Console.WriteLine($"File saved successfully. Size: {new FileInfo(imagePath).Length} bytes");
+
+            // FFmpeg Command - simplified for maximum compatibility
+            string ffmpegArgs = $"-y -loop 1 -i \"{imagePath}\" -c:v libx264 -t 10 -pix_fmt yuv420p \"{outputFilePath}\"";
+
+            Console.WriteLine($"Running FFmpeg command: {ffmpegArgs}");
+
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -51,8 +66,6 @@ public class ConvertController : ControllerBase
 
             // Capture errors
             string stderr = await process.StandardError.ReadToEndAsync();
-            string stdout = await process.StandardOutput.ReadToEndAsync();
-
             await process.WaitForExitAsync();
 
             // Add a brief delay to ensure the file is fully written
@@ -64,12 +77,24 @@ public class ConvertController : ControllerBase
                 return StatusCode(500, $"FFmpeg failed: {stderr}");
             }
 
+            // Check if the output file exists
+            if (!System.IO.File.Exists(outputFilePath))
+            {
+                Console.WriteLine("Output file was not created");
+                return StatusCode(500, "Failed to create output video file");
+            }
+
+            Console.WriteLine($"Video generated successfully at {outputFilePath}");
+
             // Return the URL of the generated video
-            return Ok(new { message = "Video generated successfully!", videoUrl = $"/videos/output_{timestamp}.mp4" });
+            string videoUrl = $"/videos/output_{timestamp}.mp4";
+
+            return Ok(new { message = "Video generated successfully!", videoUrl = videoUrl });
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Exception: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
             return StatusCode(500, $"Exception: {ex.Message}");
         }
     }
